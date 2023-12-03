@@ -1,0 +1,40 @@
+.nav-bar {
+    background: linear-gradient(-90deg, #ffcc00, #ff6699, #3366cc);
+    width: 100vw;
+    height: 10vh;
+    background-size: 400% 100%;
+    animation: nav-bar 20s ease infinite;
+    text-align: right;
+    padding-top: 20px;
+    padding-right: 5%;
+  }
+  
+  @keyframes nav-bar {
+    0% {
+      background-position: 0% 50%;
+    }
+  
+    50% {
+      background-position: 100% 50%;
+    }
+  
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .nav-bar-option {
+    font-weight: bold;
+    font-size: 18px;
+    font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+      "Lucida Sans", Arial, sans-serif;
+    color: white;
+    text-decoration: none;
+    margin: 10px;
+  }
+  
+  .nav-bar-option:hover {
+    color: white;
+    text-decoration: none;
+  }
+  
