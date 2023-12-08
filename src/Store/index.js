@@ -1,12 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
-import userSelectedCurrenciesReducer from "../Crypto/userSelectedCurrenciesReducer";
-import adminSelectedCurrenciesReducer from "../Crypto/adminSelectedCurrienciesReducer";
+import { combineReducers } from "redux";
+import adminCurrenciesReducer from "../Crypto/adminCurrenciesSlice";
+import userCurrenciesReducer from "../Crypto/userCurrenciesSlice";
+
+const rootReducer = combineReducers({
+  adminCurrencies: adminCurrenciesReducer,
+  userCurrencies: userCurrenciesReducer,
+});
 
 const store = configureStore({
-  reducer: {
-    userSelectedCurrenciesReducer,
-    adminSelectedCurrenciesReducer,
-  },
+  reducer: rootReducer,
 });
 
 export default store;
