@@ -4,41 +4,75 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import Navbar from "../Navbar/navbar";
 import { useDispatch, useSelector } from "react-redux";
-import { getCurrencies } from "./client";
 import {
-  addUserCurrency,
-  removeUserCurrency,
+  getSupportedCurrenciesBackend,
+  getUserCurrenciesBackend,
+  addUserCurrenciesBackend,
+  deleteUserCurrenciesBackend,
+} from "./client";
+
+import {
+  setUserCurrencies,
   selectUserCurrencies,
 } from "./userCurrenciesSlice";
 
 import {
-  setAdminCurrencies,
-  selectAdminCurrencies,
-} from "./adminCurrenciesSlice";
+  setSupportedCurrencies,
+  selectSupportedCurrencies,
+} from "./supportedCurrenciesSlice";
 
 function Crypto() {
   const dispatch = useDispatch();
-  const adminCurrencies = useSelector(selectAdminCurrencies);
+  const supportedCurrencies = useSelector(selectSupportedCurrencies);
   const userCurrencies = useSelector(selectUserCurrencies);
 
+  /* Currency selected in search bar */
+  const [selectedCurrency, setSelectedCurrency] = useState(null);
+
+  const triggerSetSelectedCurrency = (selectedOption) => {
+    setSelectedCurrency(selectedOption);
+    console.log(`Option selected:`, selectedOption);
+  };
+
+  /* Available currencies to select */
   useEffect(() => {
-    const fetchCurrencies = async () => {
+    const fetchSupportedCurrencies = async () => {
       try {
-        const currencies = await getCurrencies();
-        dispatch(setAdminCurrencies(currencies));
+        const currencies = await getSupportedCurrenciesBackend();
+        dispatch(setSupportedCurrencies(currencies));
       } catch (error) {
         console.error("Error fetching currencies:", error);
       }
     };
 
-    fetchCurrencies();
+    fetchSupportedCurrencies();
   }, []);
 
-  const [selectedCurrency, setSelectedCurrency] = useState(null);
+  /* Currencies user has selected so far */
 
-  const handleChange = (selectedOption) => {
-    setSelectedCurrency(selectedOption);
-    console.log(`Option selected:`, selectedOption);
+  const fetchUserCurrencies = async () => {
+    try {
+      const currencies = await getUserCurrenciesBackend();
+      dispatch(setUserCurrencies(currencies));
+    } catch (error) {
+      console.error("Error fetching currencies:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserCurrencies();
+  }, []);
+
+  /* User adds a currency */
+  const handleAddUserCurrency = (currency) => {
+    if (currency !== null) {
+      addUserCurrenciesBackend(currency).then(fetchUserCurrencies);
+    }
+  };
+
+  /* User adds a currency */
+  const handleDeleteUserCurrency = (currency) => {
+    deleteUserCurrenciesBackend(currency).then(fetchUserCurrencies);
   };
 
   return (
@@ -67,20 +101,20 @@ function Crypto() {
                   isRtl={false}
                   isSearchable={true}
                   name="search-currencies"
-                  options={adminCurrencies}
+                  options={supportedCurrencies}
                   styles={{
                     control: (baseStyles, state) => ({
                       ...baseStyles,
                       width: "300px",
                     }),
                   }}
-                  onChange={handleChange}
+                  onChange={triggerSetSelectedCurrency}
                 />
               </th>
               <th style={{ width: "12%" }}>
                 <button
                   className="btn btn-success"
-                  onClick={() => dispatch(addUserCurrency(selectedCurrency))}
+                  onClick={() => handleAddUserCurrency(selectedCurrency)}
                 >
                   Add Currency
                 </button>
@@ -96,7 +130,10 @@ function Crypto() {
                 <td style={{ textAlign: "right" }}>
                   <button
                     className="btn btn-danger"
-                    onClick={() => dispatch(removeUserCurrency(currency.value))}
+                    onClick={() => (
+                      handleDeleteUserCurrency(currency),
+                      console.log(userCurrencies)
+                    )}
                   >
                     <FaRegTrashCan />
                   </button>

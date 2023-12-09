@@ -1,10 +1,27 @@
 import axios from "axios";
-const Currency_Databse_URL = "http://localhost:4000/currencies";
-const Market_Data_Request_URL = "http://localhost:4000/marketDataRequest";
+const Supported_Currencies_URL = "http://localhost:4000/supportedCurrencies";
+const User_Currencies_URL = "http://localhost:4000/userCurrencies";
 
-export const getCurrencies = async () => {
-  const response = await axios.get(`${Currency_Databse_URL}`);
+export const getSupportedCurrenciesBackend = async () => {
+  const response = await axios.get(`${Supported_Currencies_URL}`);
   return response.data;
 };
 
+export const getUserCurrenciesBackend = async () => {
+  const response = await axios.get(`${User_Currencies_URL}`);
+  return response.data;
+};
 
+export const addUserCurrenciesBackend = async (currency) => {
+  const response = await axios.post(
+    `${User_Currencies_URL}/${currency.label}/${currency.value}`
+  );
+  return response.data;
+};
+
+export const deleteUserCurrenciesBackend = async (currency) => {
+  const response = await axios.delete(
+    `${User_Currencies_URL}/${currency.value}`
+  );
+  return response.data;
+};

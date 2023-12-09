@@ -6,15 +6,13 @@ const userCurrenciesSlice = createSlice({
     list: [],
   },
   reducers: {
-    addUserCurrency: (state, action) => {
-      state.list.push(action.payload);
-    },
-    removeUserCurrency: (state, action) => {
-      state.list = state.list.filter((currency) => currency.value !== action.payload);
+    setUserCurrencies: (state, action) => {
+      state.list = action.payload;
     },
   },
 });
 
-export const { addUserCurrency, removeUserCurrency } = userCurrenciesSlice.actions;
+export const { addUserCurrency, deleteUserCurrency, setUserCurrencies } =
+  userCurrenciesSlice.actions;
 export const selectUserCurrencies = (state) => state.userCurrencies.list;
 export default userCurrenciesSlice.reducer;
