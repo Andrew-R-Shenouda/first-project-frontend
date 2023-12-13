@@ -3,7 +3,9 @@ import { FaRegTrashCan } from "react-icons/fa6";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import Navbar from "../Navbar/navbar";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { convertToDollarFormat } from "../Util/util";
 import {
   getSupportedCurrenciesBackend,
   getUserCurrenciesBackend,
@@ -14,6 +16,7 @@ import {
 import {
   setUserCurrencies,
   selectUserCurrencies,
+  addCurrencyData,
 } from "./userCurrenciesSlice";
 
 import {
@@ -31,10 +34,9 @@ function Crypto() {
 
   const triggerSetSelectedCurrency = (selectedOption) => {
     setSelectedCurrency(selectedOption);
-    console.log(`Option selected:`, selectedOption);
   };
 
-  /* Available currencies to select */
+  /* Get currencies available to select */
   useEffect(() => {
     const fetchSupportedCurrencies = async () => {
       try {
@@ -48,8 +50,7 @@ function Crypto() {
     fetchSupportedCurrencies();
   }, []);
 
-  /* Currencies user has selected so far */
-
+  /* Get the currencies the user has selected so far */
   const fetchUserCurrencies = async () => {
     try {
       const currencies = await getUserCurrenciesBackend();
@@ -65,25 +66,62 @@ function Crypto() {
 
   /* User adds a currency */
   const handleAddUserCurrency = (currency) => {
-    if (currency !== null) {
+    if (
+      currency !== null &&
+      !userCurrencies.some(
+        (item) => item.label === currency.label && item.value === currency.value
+      )
+    ) {
       addUserCurrenciesBackend(currency).then(fetchUserCurrencies);
     }
   };
 
-  /* User adds a currency */
+  /* User deletes a currency */
   const handleDeleteUserCurrency = (currency) => {
-    deleteUserCurrenciesBackend(currency).then(fetchUserCurrencies);
+    if (currency !== null) {
+      deleteUserCurrenciesBackend(currency).then(fetchUserCurrencies);
+    }
   };
+
+  // useEffect(() => {
+  //   console.log("actual user currency state", userCurrencies);
+  // }, [userCurrencies]);
+
+  useEffect(() => {
+    // Create a websocket to talk to the backend
+    const socket = new WebSocket("ws://localhost:4040");
+
+    // Event listener for WebSocket connection opened
+    socket.addEventListener("open", (event) => {
+      console.log("WebSocket connection opened");
+    });
+
+    // Handle the received data as needed
+    socket.addEventListener("message", (event) => {
+      const blobData = event.data;
+
+      // Convert Blob to text and then to JSON
+      blobData.text().then((textData) => {
+        const currencyData = JSON.parse(textData);
+        //  console.log("Received message from server:", currencyData);
+        dispatch(addCurrencyData(currencyData));
+      });
+    });
+
+    // notify when connection is closed
+    socket.addEventListener("close", (event) => {
+      console.log("WebSocket connection closed:", event);
+    });
+
+    // notify when there is an error
+    socket.addEventListener("error", (event) => {
+      console.error("WebSocket error:", event);
+    });
+  }, []);
 
   return (
     <div>
       <Navbar />
-      <input
-        className="element-container form-control"
-        type="text"
-        placeholder="Search your dashboard..."
-      />
-
       <div className="element-container">
         <table className="table table-striped table-hover">
           <thead>
@@ -122,24 +160,37 @@ function Crypto() {
             </tr>
           </thead>
           <tbody>
-            {userCurrencies.map((currency) => (
-              <tr key={currency.value}>
-                <td>{currency.value}</td>
-                <td>$1000</td>
-                <td></td>
-                <td style={{ textAlign: "right" }}>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => (
-                      handleDeleteUserCurrency(currency),
-                      console.log(userCurrencies)
-                    )}
-                  >
-                    <FaRegTrashCan />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {userCurrencies.map((currency) => {
+              const price = convertToDollarFormat(currency.price);
+              return (
+                <tr key={currency.value}>
+                  <td>{currency.value}</td>
+                  <td>{price || "loading..."}</td>
+                  <td>
+                    <Link
+                      to={`/crypto/${currency.value}`}
+                      key={currency.value}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <button
+                        className="btn"
+                        style={{ backgroundColor: "#9370DB", color: "white" }}
+                      >
+                        see more
+                      </button>
+                    </Link>
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleDeleteUserCurrency(currency)}
+                    >
+                      <FaRegTrashCan />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
