@@ -14,7 +14,7 @@ function Homepage() {
         </div>
       </div>
       <div className="btn-container">
-        <Link to="/crypto" className="btn get-started-button pt-2">
+        <Link to="/get-started" className="btn get-started-button pt-2">
           Get Started
         </Link>
       </div>
