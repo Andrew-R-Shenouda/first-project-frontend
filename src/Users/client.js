@@ -1,15 +1,18 @@
 import axios from "axios";
+export const BASE_API = process.env.REACT_APP_BASE_API_URL;
+export const USERS_API = `${BASE_API}/users`;
+
 const request = axios.create({
   withCredentials: true,
 });
-export const BASE_API = process.env.REACT_APP_BASE_API_URL;
-export const USERS_API = `${BASE_API}/users`;
+
 export const signin = async (credentials) => {
   const response = await request.post(`${USERS_API}/signin`, credentials);
   return response.data;
 };
 export const account = async () => {
   const response = await request.post(`${USERS_API}/account`);
+  console.log("account response:", response.data);
   return response.data;
 };
 export const updateUser = async (user) => {
@@ -39,4 +42,23 @@ export const signup = async (credentials) => {
 export const signout = async () => {
   const response = await request.post(`${USERS_API}/signout`);
   return response.data;
+};
+
+export const getUserCurrenciesBackend = async (id) => {
+  const response = await findUserById(id);
+  return response.currencies;
+};
+
+export const addUserCurrenciesBackend = async (currency, user) => {
+  const updatedCurrencies = [...user.currencies, currency];
+  const updatedUser = { ...user, currencies: updatedCurrencies };
+  console.log("updated user", updatedUser);
+  const response = updateUser(updatedUser);
+  return response;
+};
+
+export const deleteUserCurrenciesBackend = async (currencyId, user) => {
+  user["currencies"] = user["currencies"].filter((c) => c._id !== currencyId);
+  const response = updateUser(user);
+  return response;
 };

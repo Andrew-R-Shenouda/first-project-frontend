@@ -6,12 +6,13 @@ import Navbar from "../Navbar/navbar";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { convertToDollarFormat } from "../Util/util";
+import { getSupportedCurrenciesBackend } from "./client";
 import {
-  getSupportedCurrenciesBackend,
-  getUserCurrenciesBackend,
   addUserCurrenciesBackend,
   deleteUserCurrenciesBackend,
-} from "./client";
+  getUserCurrenciesBackend,
+  account,
+} from "../Users/client";
 
 import {
   setUserCurrencies,
@@ -50,19 +51,32 @@ function Crypto() {
     fetchSupportedCurrencies();
   }, []);
 
-  /* Get the currencies the user has selected so far */
-  const fetchUserCurrencies = async () => {
-    try {
-      const currencies = await getUserCurrenciesBackend();
-      dispatch(setUserCurrencies(currencies));
-    } catch (error) {
-      console.error("Error fetching currencies:", error);
-    }
+  const [currentAccount, setCurrentAccount] = useState(null);
+
+  const fetchAccount = async () => {
+    const newAccount = await account();
+    setCurrentAccount(newAccount);
   };
 
   useEffect(() => {
-    fetchUserCurrencies();
+    fetchAccount();
   }, []);
+
+  useEffect(() => {
+    const fetchUserCurrencies = async () => {
+      try {
+        if (currentAccount) {
+          const currencies = await getUserCurrenciesBackend(currentAccount._id);
+
+          dispatch(setUserCurrencies(currencies));
+        }
+      } catch (error) {
+        console.error("Error fetching currencies:", error);
+      }
+    };
+
+    fetchUserCurrencies();
+  }, [currentAccount]);
 
   /* User adds a currency */
   const handleAddUserCurrency = (currency) => {
@@ -72,14 +86,16 @@ function Crypto() {
         (item) => item.label === currency.label && item.value === currency.value
       )
     ) {
-      addUserCurrenciesBackend(currency).then(fetchUserCurrencies);
+      addUserCurrenciesBackend(currency, currentAccount).then(fetchAccount);
     }
   };
 
   /* User deletes a currency */
-  const handleDeleteUserCurrency = (currency) => {
-    if (currency !== null) {
-      deleteUserCurrenciesBackend(currency).then(fetchUserCurrencies);
+  const handleDeleteUserCurrency = (currencyId) => {
+    if (currencyId !== null) {
+      deleteUserCurrenciesBackend(currencyId, currentAccount).then(
+        fetchAccount
+      );
     }
   };
 
@@ -183,7 +199,7 @@ function Crypto() {
                   <td style={{ textAlign: "right" }}>
                     <button
                       className="btn btn-danger"
-                      onClick={() => handleDeleteUserCurrency(currency)}
+                      onClick={() => handleDeleteUserCurrency(currency._id)}
                     >
                       <FaRegTrashCan />
                     </button>
